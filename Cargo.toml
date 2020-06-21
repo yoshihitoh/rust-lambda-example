@@ -1,0 +1,12 @@
+[package]
+name = "rust-lambda-example"
+version = "0.1.0"
+authors = ["yoshihitoh"]
+edition = "2018"
+
+[dependencies]
+lambda_runtime = "0.2"
+serde = { version = "1", features = ["derive"] }
+rusoto_core = "0.44"
+rusoto_s3 = "0.44"
+tokio = "0.2"
