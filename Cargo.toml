@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["yoshihitoh"]
 edition = "2018"
 
+[[bin]]
+name = "handle-s3-object"
+path = "src/bin/handle-s3-object.rs"
+
 [dependencies]
 lambda_runtime = "0.2"
 serde = { version = "1", features = ["derive"] }

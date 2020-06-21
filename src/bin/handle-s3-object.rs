@@ -1,12 +1,12 @@
 use std::error::Error as StdError;
-use std::io;
 
 use lambda_runtime::{error::HandlerError, lambda, Context};
-use rusoto_core::{Region, RusotoError};
-use rusoto_s3::{GetObjectError, GetObjectOutput, GetObjectRequest, S3Client, StreamingBody, S3};
+use rusoto_core::Region;
+use rusoto_s3::S3Client;
 use serde::{Deserialize, Serialize};
-use tokio::io::AsyncReadExt;
 use tokio::runtime::Runtime;
+
+use rust_lambda_example::s3::{get_object, read_body};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -52,43 +52,13 @@ fn handler(
     Ok(CustomOutput {})
 }
 
-async fn handle_s3_object(
-    app: &App,
-    event: CustomEvent,
-) -> Result<(), Box<dyn StdError>> {
-    let out = get_object(&app.s3_client, event.bucket_name, event.object_key)
-        .await?;
+async fn handle_s3_object(app: &App, event: CustomEvent) -> Result<(), Box<dyn StdError>> {
+    let out = get_object(&app.s3_client, event.bucket_name, event.object_key).await?;
 
     if let (Some(body), Some(length)) = (out.body, out.content_length) {
-        let data = read_body(body, length as usize).await?;
+        let _data = read_body(body, length as usize).await?;
         // オブジェクトのデータを使って何かする
     }
 
     Ok(())
-}
-
-async fn get_object(
-    s3_client: &S3Client,
-    bucket_name: String,
-    object_key: String,
-) -> Result<GetObjectOutput, RusotoError<GetObjectError>> {
-    let input = GetObjectRequest {
-        bucket: bucket_name,
-        key: object_key,
-        ..Default::default()
-    };
-    let output = s3_client.get_object(input).await?;
-    Ok(output)
-}
-
-async fn read_body(
-    body: StreamingBody,
-    content_length: usize,
-) -> Result<Vec<u8>, io::Error> {
-    let mut reader = body.into_async_read();
-
-    let mut data = Vec::with_capacity(content_length);
-    reader.read_to_end(&mut data).await?;
-
-    Ok(data)
 }
